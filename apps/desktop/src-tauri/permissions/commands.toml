@@ -1,0 +1,19 @@
+[[permission]]
+identifier = "allow-scan"
+description = "Scan the chosen home folder for suggested cleanup."
+commands.allow = ["scan"]
+
+[[permission]]
+identifier = "allow-clean"
+description = "Move files from the last scan into the Trash."
+commands.allow = ["clean"]
+
+[[permission]]
+identifier = "allow-undo"
+description = "Restore the last Trash operation."
+commands.allow = ["undo"]
+
+[[permission]]
+identifier = "allow-open-permission-settings"
+description = "Open the macOS privacy settings pane."
+commands.allow = ["open_permission_settings"]

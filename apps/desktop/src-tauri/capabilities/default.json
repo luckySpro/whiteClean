@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "WhiteClean main window",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "allow-scan",
+    "allow-clean",
+    "allow-undo",
+    "allow-open-permission-settings"
+  ]
+}

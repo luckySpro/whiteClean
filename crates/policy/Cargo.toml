@@ -1,0 +1,11 @@
+[package]
+name = "policy"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+publish.workspace = true
+description = "WhiteClean cleanup decisions: what to keep, what is sensitive, what is safe to trash"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }

@@ -1,0 +1,51 @@
+name: release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  macos:
+    permissions:
+      contents: write
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: .
+
+      - name: install frontend dependencies
+        working-directory: apps/desktop
+        run: npm ci
+
+      - uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: apps/desktop
+          tagName: v__VERSION__-test.1
+          releaseName: WhiteClean v__VERSION__ 测试版
+          releaseBody: |
+            给本机试用的 Apple 芯片（M 系列）包，没有 Apple 公证。
+
+            下载 DMG 后，把 WhiteClean 拖进「应用程序」。如果系统提示无法打开，到「系统设置 → 隐私与安全性」里选择仍要打开。
+
+            它会检查这台 Mac 的下载、桌面、文稿和缓存。只有你确认之后，文件才会进废纸篓，并且可以撤销。
+          releaseDraft: false
+          prerelease: true
+          args: --target aarch64-apple-darwin
+          uploadWorkflowArtifacts: true

@@ -1,0 +1,71 @@
+/* 色卡
+   换一套颜色时，只改「色卡」这一段。
+   下面的「界面用色」是界面各处的名字，一般不用动。
+*/
+
+:root {
+  /* 色卡 */
+  --swatch-paper: #f7f1e8;
+  --swatch-card: #fffcf7;
+  --swatch-sunk: #f3ebdf;
+  --swatch-hover: #faf4ea;
+  --swatch-ink: #2e2620;
+  --swatch-ink-soft: #51463d;
+  --swatch-muted: #80736a;
+  --swatch-faint: #b0a497;
+  --swatch-line: #ece2d4;
+  --swatch-line-strong: #dccdb9;
+  --swatch-clay: #c0582f;
+  --swatch-clay-deep: #a44826;
+  --swatch-clay-soft: #f9e6da;
+  --swatch-cream: #fffaf3;
+  --swatch-moss: #4a8158;
+  --swatch-moss-soft: #e5efe3;
+  --swatch-honey: #faefcf;
+  --swatch-honey-ink: #9a6a0c;
+  --swatch-sage: #e4eedf;
+  --swatch-sage-ink: #4b7a46;
+  --swatch-slate: #e5ebec;
+  --swatch-slate-ink: #4e6a72;
+  --swatch-sand: #e6d9c6;
+  --swatch-sand-deep: #a8988a;
+  --swatch-notice: #fcf0d9;
+  --swatch-notice-line: #efd9ab;
+  --swatch-notice-ink: #8a5a12;
+  --swatch-notice-body: #5e3f0c;
+
+  /* 界面用色 */
+  color-scheme: light;
+  --bg: var(--swatch-paper);
+  --card: var(--swatch-card);
+  --sunk: var(--swatch-sunk);
+  --hover: var(--swatch-hover);
+  --ink: var(--swatch-ink);
+  --ink-2: var(--swatch-ink-soft);
+  --muted: var(--swatch-muted);
+  --faint: var(--swatch-faint);
+  --line: var(--swatch-line);
+  --line-strong: var(--swatch-line-strong);
+  --accent: var(--swatch-clay);
+  --accent-press: var(--swatch-clay-deep);
+  --accent-soft: var(--swatch-clay-soft);
+  --on-accent: var(--swatch-cream);
+  --ok: var(--swatch-moss);
+  --ok-soft: var(--swatch-moss-soft);
+  --tile-duplicate-bg: var(--swatch-clay-soft);
+  --tile-duplicate-ink: var(--swatch-clay);
+  --tile-version-bg: var(--swatch-honey);
+  --tile-version-ink: var(--swatch-honey-ink);
+  --tile-installer-bg: var(--swatch-sage);
+  --tile-installer-ink: var(--swatch-sage-ink);
+  --tile-cache-bg: var(--swatch-slate);
+  --tile-cache-ink: var(--swatch-slate-ink);
+  --meter-track: var(--swatch-sand);
+  --meter-used: var(--swatch-sand-deep);
+  --notice-bg: var(--swatch-notice);
+  --notice-line: var(--swatch-notice-line);
+  --notice-ink: var(--swatch-notice-ink);
+  --notice-body: var(--swatch-notice-body);
+  --radius: 16px;
+  --shadow: 0 1px 0 color-mix(in srgb, var(--swatch-ink) 6%, transparent);
+}

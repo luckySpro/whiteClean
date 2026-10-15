@@ -1,0 +1,27 @@
+[package]
+name = "whiteclean"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+publish.workspace = true
+description = "Beginner-friendly Mac cleanup"
+
+[lib]
+name = "whiteclean"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+dirs = "6"
+platform = { path = "../../../crates/platform" }
+scan = { path = "../../../crates/scan" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2", features = [] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
