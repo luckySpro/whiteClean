@@ -14,12 +14,16 @@ export const copy = {
   pickedOf: (picked, total) => `已选 ${picked}/${total}`,
   selectAll: (title) => `全选${title}`,
   showMore: (count) => `再显示 ${count} 项`,
+  showMoreGroups: (count) => `再显示 ${count} 组`,
   showLess: "收起",
 
   dupDetail: (place, keepPlace, keepName) =>
     `${place} · 和${keepPlace === place ? "同一文件夹" : keepPlace}里的「${keepName}」一模一样，留那份`,
-  versionDetail: (keepName, differs) =>
-    differs ? `旧版本 · 留下较新的「${keepName}」，两份内容不一样` : `旧版本 · 留下较新的「${keepName}」`,
+  versionKeep: (place) => (place ? `${place} · 较新，这份留下` : "较新，这份留下"),
+  versionKeepDiffers: (place) =>
+    place ? `${place} · 较新，这份留下。下面的内容和它不一样` : "较新，这份留下。下面的内容和它不一样",
+  versionChild: "较旧",
+  versionChildDiffers: "较旧，内容和留下的那份不一样",
   installerDetail: (place, ago) => `${place} · ${ago}下载的，软件装好后就用不上了`,
   keptTitle: "已帮你留下",
   keptHint: "看起来像证件、合同或密码，不会动它们",

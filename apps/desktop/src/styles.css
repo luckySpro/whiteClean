@@ -479,6 +479,48 @@ ul {
   color: var(--accent);
 }
 
+.tree + .tree {
+  border-top: 1px solid var(--line);
+}
+
+.tree-keep {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 8px 4px 18px;
+}
+
+.keep-mark {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ok-soft);
+  color: var(--ok);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.tree-children {
+  margin: 2px 8px 8px 36px;
+  padding-left: 14px;
+  border-left: 1.5px solid var(--line-strong);
+}
+
+.tree-children .row {
+  position: relative;
+  padding-right: 0;
+}
+
+.tree-children .row::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 22px;
+  width: 10px;
+  height: 1.5px;
+  background: var(--line-strong);
+}
+
 /* Checkbox */
 
 .box {
