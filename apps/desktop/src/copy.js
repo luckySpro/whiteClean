@@ -26,6 +26,7 @@ export const copy = {
   keptReason: (place) => (place ? `${place} · 像证件或合同，不会动` : "像证件或合同，不会动"),
 
   footerPicked: (count, size) => `已选 ${count} 项，共 ${size}`,
+  reveal: "在访达中显示",
   footerNote: "清空废纸篓之前，都能一键撤销",
   clean: (size) => `清理 ${size}`,
   nothingPicked: "先勾选要清理的项",

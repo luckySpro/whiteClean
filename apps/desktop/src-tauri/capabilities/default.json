@@ -8,6 +8,7 @@
     "allow-scan",
     "allow-clean",
     "allow-undo",
-    "allow-open-permission-settings"
+    "allow-open-permission-settings",
+    "allow-reveal-in-finder"
   ]
 }

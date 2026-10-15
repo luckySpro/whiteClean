@@ -17,3 +17,8 @@ commands.allow = ["undo"]
 identifier = "allow-open-permission-settings"
 description = "Open the macOS privacy settings pane."
 commands.allow = ["open_permission_settings"]
+
+[[permission]]
+identifier = "allow-reveal-in-finder"
+description = "Show a file from the last scan in Finder."
+commands.allow = ["reveal_in_finder"]

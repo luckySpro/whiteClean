@@ -108,6 +108,15 @@ async function openSettings() {
   if (inTauri()) await tauriInvoke("open_permission_settings");
 }
 
+async function reveal(path) {
+  if (!inTauri()) return;
+  try {
+    await tauriInvoke("reveal_in_finder", { path });
+  } catch {
+    // The file may already be gone. The list itself stays as it is.
+  }
+}
+
 function toggleRow(path) {
   if (selected.has(path)) selected.delete(path);
   else selected.add(path);
@@ -286,6 +295,7 @@ function wait(ms) {
             :selected="selected"
             @toggle-row="toggleRow"
             @toggle-section="toggleSection"
+            @reveal="reveal"
           />
 
           <section v-if="report.skipped.length" class="section kept">
@@ -302,6 +312,9 @@ function wait(ms) {
                   <span class="row-name">{{ item.name }}</span>
                   <span class="row-meta">{{ copy.keptReason(placeOf(item.path)) }}</span>
                 </span>
+                <button class="reveal" type="button" :aria-label="copy.reveal" @click="reveal(item.path)">
+                  <AppIcon name="search" :size="16" />
+                </button>
               </li>
             </ul>
           </section>

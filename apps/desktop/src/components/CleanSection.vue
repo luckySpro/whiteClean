@@ -12,7 +12,7 @@ const props = defineProps({
   selected: { type: Object, required: true },
 });
 
-const emit = defineEmits(["toggle-row", "toggle-section"]);
+const emit = defineEmits(["toggle-row", "toggle-section", "reveal"]);
 
 const open = ref(true);
 const showAll = ref(false);
@@ -74,10 +74,9 @@ function detail(row) {
     </div>
 
     <ul v-if="open" class="rows">
-      <li v-for="row in rows" :key="row.path">
+      <li v-for="row in rows" :key="row.path" class="row" :class="{ off: !selected.has(row.path) }">
         <button
-          class="row"
-          :class="{ off: !selected.has(row.path) }"
+          class="row-hit"
           type="button"
           role="checkbox"
           :aria-checked="selected.has(row.path)"
@@ -89,6 +88,9 @@ function detail(row) {
             <span v-if="detail(row)" class="row-meta">{{ detail(row) }}</span>
           </span>
           <span class="row-size">{{ formatBytes(row.size).text }}</span>
+        </button>
+        <button class="reveal" type="button" :aria-label="copy.reveal" @click="emit('reveal', row.path)">
+          <AppIcon name="search" :size="16" />
         </button>
       </li>
       <li v-if="hidden > 0 || showAll">
