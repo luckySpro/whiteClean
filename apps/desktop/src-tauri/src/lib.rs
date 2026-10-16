@@ -69,10 +69,115 @@ pub fn planned_deletes(report: &ScanReport, paths: &[String]) -> Vec<PlannedDele
         .collect()
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct FolderItem {
+    pub id: String,
+    pub name: String,
+    pub path: String,
+    pub kind: String, // "default" | "cache" | "custom"
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ConfigPayload {
+    pub home: String,
+    pub folders: Vec<FolderItem>,
+}
+
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct ScanOptions {
+    pub folders: Option<Vec<String>>,
+    pub include_caches: Option<bool>,
+}
+
 #[tauri::command]
-async fn scan(state: State<'_, AppState>) -> Result<ScanPayload, String> {
+fn get_default_folders(state: State<'_, AppState>) -> ConfigPayload {
+    let home = &state.home;
+    let mut folders = Vec::new();
+    folders.push(FolderItem {
+        id: "downloads".into(),
+        name: "下载".into(),
+        path: home.join("Downloads").to_string_lossy().into_owned(),
+        kind: "default".into(),
+        enabled: true,
+    });
+    folders.push(FolderItem {
+        id: "desktop".into(),
+        name: "桌面".into(),
+        path: home.join("Desktop").to_string_lossy().into_owned(),
+        kind: "default".into(),
+        enabled: true,
+    });
+    folders.push(FolderItem {
+        id: "documents".into(),
+        name: "文稿".into(),
+        path: home.join("Documents").to_string_lossy().into_owned(),
+        kind: "default".into(),
+        enabled: true,
+    });
+    folders.push(FolderItem {
+        id: "caches".into(),
+        name: "系统缓存与日志".into(),
+        path: home.join("Library/Caches").to_string_lossy().into_owned(),
+        kind: "cache".into(),
+        enabled: true,
+    });
+    ConfigPayload {
+        home: home.to_string_lossy().into_owned(),
+        folders,
+    }
+}
+
+#[tauri::command]
+fn pick_folder() -> Result<Option<String>, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let script = r#"try
+POSIX path of (choose folder with prompt "选择要检查的文件夹")
+on error
+return ""
+end try"#;
+        let output = Command::new("osascript")
+            .arg("-e")
+            .arg(script)
+            .output()
+            .map_err(|e| e.to_string())?;
+        let res = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if res.is_empty() {
+            Ok(None)
+        } else {
+            let clean = res.trim_end_matches('/').to_string();
+            Ok(Some(clean))
+        }
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        Ok(None)
+    }
+}
+
+#[tauri::command]
+async fn scan(options: Option<ScanOptions>, state: State<'_, AppState>) -> Result<ScanPayload, String> {
     let home = state.home.clone();
-    let report = tauri::async_runtime::spawn_blocking(move || scan_home(&ScanRequest::for_home(home)))
+    let request = if let Some(opts) = options {
+        let roots: Vec<PathBuf> = opts
+            .folders
+            .unwrap_or_default()
+            .into_iter()
+            .map(PathBuf::from)
+            .filter(|p| p.exists() && p.is_dir())
+            .collect();
+        let inc_caches = opts.include_caches.unwrap_or(true);
+        if roots.is_empty() {
+            ScanRequest::for_home(home.clone())
+        } else {
+            ScanRequest::with_folders(home.clone(), roots, inc_caches)
+        }
+    } else {
+        ScanRequest::for_home(home.clone())
+    };
+
+    let report = tauri::async_runtime::spawn_blocking(move || scan_home(&request))
         .await
         .map_err(|error| error.to_string())?;
     let view = payload(&state.home, report.clone());
@@ -149,7 +254,9 @@ pub fn run() {
             clean,
             undo,
             open_permission_settings,
-            reveal_in_finder
+            reveal_in_finder,
+            get_default_folders,
+            pick_folder
         ])
         .run(tauri::generate_context!())
         .expect("WhiteClean failed to start");

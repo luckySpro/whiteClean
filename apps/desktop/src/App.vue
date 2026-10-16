@@ -4,11 +4,12 @@ import { copy } from "./copy";
 import { formatBytes, placeOf } from "./format";
 import { emptyReport, previewReport } from "./preview";
 import AppIcon from "./components/AppIcon.vue";
+import CheckBox from "./components/CheckBox.vue";
 import CleanSection from "./components/CleanSection.vue";
 
 const KIND_ORDER = ["exact_duplicate", "older_version", "old_installer", "regenerable"];
 
-const screen = ref("scanning");
+const screen = ref("ready");
 const report = ref(emptyReport());
 const selected = reactive(new Set());
 const confirming = ref(false);
@@ -17,7 +18,10 @@ const trashGone = ref(false);
 const cleaned = ref({ bytes: 0, count: 0, paths: [], failed: 0 });
 const stepIndex = ref(0);
 const confirmButton = ref(null);
+const folders = ref([]);
 let stepTimer = 0;
+
+const activeFoldersCount = computed(() => folders.value.filter((f) => f.enabled).length);
 
 const sections = computed(() =>
   KIND_ORDER.map((kind) => {
@@ -60,7 +64,12 @@ onMounted(async () => {
   permissionMissing.value = params.get("permission") === "1";
   trashGone.value = params.get("trash") === "empty";
   window.addEventListener("keydown", onKey);
-  await scan({ previewEmpty: params.get("empty") === "1" });
+
+  await initFolders();
+
+  if (params.get("auto") === "1") {
+    await scan({ previewEmpty: params.get("empty") === "1" });
+  }
 });
 
 onBeforeUnmount(() => {
@@ -77,6 +86,93 @@ async function tauriInvoke(command, args) {
   return invoke(command, args);
 }
 
+function defaultFallbackFolders() {
+  return [
+    { id: "downloads", name: "下载", path: "/Users/you/Downloads", kind: "default", enabled: true },
+    { id: "desktop", name: "桌面", path: "/Users/you/Desktop", kind: "default", enabled: true },
+    { id: "documents", name: "文稿", path: "/Users/you/Documents", kind: "default", enabled: true },
+    { id: "caches", name: "系统缓存与日志", path: "/Users/you/Library/Caches", kind: "cache", enabled: true },
+  ];
+}
+
+async function initFolders() {
+  let list = [];
+  if (inTauri()) {
+    try {
+      const cfg = await tauriInvoke("get_default_folders");
+      list = cfg.folders || [];
+    } catch {
+      list = defaultFallbackFolders();
+    }
+  } else {
+    list = defaultFallbackFolders();
+  }
+
+  try {
+    const saved = JSON.parse(localStorage.getItem("whiteclean_custom_folders") || "[]");
+    if (Array.isArray(saved)) {
+      for (const custom of saved) {
+        if (!list.some((item) => item.path === custom.path)) {
+          list.push(custom);
+        }
+      }
+    }
+  } catch {}
+  folders.value = list;
+}
+
+async function addCustomFolder() {
+  let chosen = null;
+  if (inTauri()) {
+    try {
+      chosen = await tauriInvoke("pick_folder");
+    } catch (e) {
+      console.error(e);
+    }
+  } else {
+    chosen = window.prompt("请输入要检查的文件夹绝对路径：", "/Users/you/Projects");
+  }
+
+  if (!chosen) return;
+  const path = chosen.trim();
+  if (!path) return;
+
+  if (folders.value.some((f) => f.path === path)) {
+    return;
+  }
+  const name = path.split("/").filter(Boolean).pop() || path;
+  folders.value.push({
+    id: "custom_" + Date.now(),
+    name,
+    path,
+    kind: "custom",
+    enabled: true,
+  });
+  saveCustomFolders();
+}
+
+function removeCustomFolder(id) {
+  folders.value = folders.value.filter((f) => f.id !== id);
+  saveCustomFolders();
+}
+
+function saveCustomFolders() {
+  const customs = folders.value.filter((f) => f.kind === "custom");
+  try {
+    localStorage.setItem("whiteclean_custom_folders", JSON.stringify(customs));
+  } catch {}
+}
+
+async function startScan() {
+  const activeFolders = folders.value.filter((f) => f.enabled && f.kind !== "cache").map((f) => f.path);
+  const includeCaches = folders.value.some((f) => f.enabled && f.kind === "cache");
+  if (activeFolders.length === 0 && !includeCaches) {
+    alert(copy.emptyFoldersWarning);
+    return;
+  }
+  await scan({ folders: activeFolders, includeCaches });
+}
+
 async function scan(options = {}) {
   screen.value = "scanning";
   stepIndex.value = 0;
@@ -87,7 +183,14 @@ async function scan(options = {}) {
   let next;
   try {
     if (inTauri()) {
-      const [result] = await Promise.all([tauriInvoke("scan"), wait(700)]);
+      const scanArgs = {};
+      if (options.folders) {
+        scanArgs.options = {
+          folders: options.folders,
+          include_caches: options.includeCaches !== false,
+        };
+      }
+      const [result] = await Promise.all([tauriInvoke("scan", scanArgs), wait(700)]);
       next = result;
       permissionMissing.value = Boolean(result.permission_missing);
     } else {
@@ -215,10 +318,97 @@ function wait(ms) {
         <span class="mark" aria-hidden="true">白</span>
         <span class="brand-name">{{ copy.appName }}</span>
       </div>
-      <span class="topbar-note"><AppIcon name="shield" :size="16" />{{ copy.safeNote }}</span>
+      <div class="topbar-right">
+        <button v-if="screen === 'home'" class="btn-text" type="button" @click="screen = 'ready'">
+          <AppIcon name="folder" :size="15" />{{ copy.reconfigureFolders }}
+        </button>
+        <span class="topbar-note"><AppIcon name="shield" :size="16" />{{ copy.safeNote }}</span>
+      </div>
     </header>
 
-    <main v-if="screen === 'scanning' || screen === 'working' || screen === 'undoing'" class="center" aria-live="polite">
+    <!-- Ready / Configuration Screen -->
+    <main v-if="screen === 'ready'" class="content">
+      <div v-if="permissionMissing" class="notice">
+        <AppIcon name="lock" :size="20" />
+        <p>{{ copy.permission }}</p>
+        <button class="btn btn-small" type="button" @click="openSettings">
+          <AppIcon name="settings" :size="16" />{{ copy.openSettings }}
+        </button>
+      </div>
+
+      <section class="ready-hero">
+        <div class="ready-head">
+          <h1 class="ready-title">{{ copy.foldersTitle }}</h1>
+          <p class="ready-sub">{{ copy.foldersSub }}</p>
+        </div>
+
+        <div class="folder-list">
+          <div
+            v-for="folder in folders"
+            :key="folder.id"
+            class="folder-row"
+            :class="{ disabled: !folder.enabled }"
+          >
+            <button
+              class="folder-check"
+              type="button"
+              role="checkbox"
+              :aria-checked="folder.enabled"
+              @click="folder.enabled = !folder.enabled"
+            >
+              <CheckBox :state="folder.enabled ? 'on' : 'off'" />
+            </button>
+
+            <span class="folder-tile" :class="folder.kind === 'cache' ? 'tile-folder' : 'tile-folder'">
+              <AppIcon :name="folder.kind === 'cache' ? 'wind' : 'folder'" :size="18" />
+            </span>
+
+            <div class="folder-info" @click="folder.enabled = !folder.enabled">
+              <div class="folder-name-row">
+                <span class="folder-name">{{ folder.name }}</span>
+                <span v-if="folder.kind === 'default'" class="folder-tag">常用</span>
+                <span v-else-if="folder.kind === 'cache'" class="folder-tag">系统</span>
+                <span v-else class="folder-tag custom">自定义</span>
+              </div>
+              <span class="folder-path">{{ folder.path }}</span>
+            </div>
+
+            <button
+              v-if="folder.kind === 'custom'"
+              class="folder-remove"
+              type="button"
+              :title="copy.removeFolder"
+              @click="removeCustomFolder(folder.id)"
+            >
+              <AppIcon name="x" :size="16" />
+            </button>
+          </div>
+
+          <button class="add-folder-btn" type="button" @click="addCustomFolder">
+            <AppIcon name="plus" :size="16" />
+            <span>{{ copy.addFolder }}</span>
+          </button>
+        </div>
+      </section>
+
+      <footer class="actionbar">
+        <div class="actionbar-text">
+          <p class="actionbar-main">已选择 {{ activeFoldersCount }} 个检查位置</p>
+          <p class="actionbar-note">未勾选的文件夹本次将完全跳过</p>
+        </div>
+        <button
+          class="btn btn-primary btn-large"
+          type="button"
+          :disabled="activeFoldersCount === 0"
+          @click="startScan"
+        >
+          <AppIcon name="play" :size="18" />{{ copy.startScan }}
+        </button>
+      </footer>
+    </main>
+
+    <!-- Scanning / Cleaning / Undoing State -->
+    <main v-else-if="screen === 'scanning' || screen === 'working' || screen === 'undoing'" class="center" aria-live="polite">
       <span class="spinner" aria-hidden="true"></span>
       <h1 class="center-title">
         {{ screen === "scanning" ? copy.scanning : screen === "working" ? copy.cleaning : copy.undoing }}
@@ -226,6 +416,7 @@ function wait(ms) {
       <p v-if="screen === 'scanning'" class="center-body">{{ copy.scanSteps[stepIndex] }}</p>
     </main>
 
+    <!-- Result State -->
     <main v-else-if="screen === 'result'" class="center">
       <span class="badge badge-ok"><AppIcon name="check" :size="34" /></span>
       <h1 class="center-title big">{{ copy.doneTitle(formatBytes(cleaned.bytes).text) }}</h1>
@@ -239,6 +430,7 @@ function wait(ms) {
       </div>
     </main>
 
+    <!-- Undone / Blocked State -->
     <main v-else-if="screen === 'undone' || screen === 'blocked'" class="center">
       <span class="badge" :class="screen === 'undone' ? 'badge-ok' : 'badge-muted'">
         <AppIcon :name="screen === 'undone' ? 'undo' : 'trash'" :size="30" />
@@ -250,12 +442,15 @@ function wait(ms) {
       </div>
     </main>
 
+    <!-- Suggestions List (Home) -->
     <template v-else>
       <main class="content">
         <div v-if="permissionMissing" class="notice">
           <AppIcon name="lock" :size="20" />
           <p>{{ copy.permission }}</p>
-          <button class="btn btn-small" type="button" @click="openSettings"><AppIcon name="settings" :size="16" />{{ copy.openSettings }}</button>
+          <button class="btn btn-small" type="button" @click="openSettings">
+            <AppIcon name="settings" :size="16" />{{ copy.openSettings }}
+          </button>
         </div>
 
         <section v-if="hasSuggestions" class="hero">
@@ -284,7 +479,7 @@ function wait(ms) {
           <span class="badge badge-ok"><AppIcon name="check" :size="34" /></span>
           <h1 class="center-title big">{{ copy.nothingTitle }}</h1>
           <p class="center-body">{{ copy.nothingBody }}</p>
-          <button class="btn btn-secondary" type="button" @click="scan()">{{ copy.rescan }}</button>
+          <button class="btn btn-secondary" type="button" @click="screen = 'ready'">{{ copy.reconfigureFolders }}</button>
         </section>
 
         <div v-if="hasSuggestions" class="list">
@@ -334,6 +529,7 @@ function wait(ms) {
       </footer>
     </template>
 
+    <!-- Confirm Dialog -->
     <div v-if="confirming" class="overlay" @click.self="confirming = false">
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
         <span class="tile tile-confirm"><AppIcon name="trash" :size="22" /></span>

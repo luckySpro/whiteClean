@@ -15,7 +15,19 @@ export const copy = {
   selectAll: (title) => `全选${title}`,
   showMore: (count) => `再显示 ${count} 项`,
   showMoreGroups: (count) => `再显示 ${count} 组`,
-  showLess: "收起",
+  showMoreStep: (step, remaining) => `再显示下 ${step} 项（还剩 ${remaining} 项）`,
+  showMoreGroupsStep: (step, remaining) => `再显示下 ${step} 组（还剩 ${remaining} 组）`,
+  showLess: "收起全部",
+
+  // 文件夹选择与管理
+  foldersTitle: "选择要检查的文件夹",
+  foldersSub: "默认已为你选好最容易堆积文件的常用位置，你可以自由增减。",
+  addFolder: "添加文件夹",
+  removeFolder: "移除",
+  startScan: "开始检查",
+  reconfigureFolders: "调整文件夹",
+  folderCachesHint: "只扫描安全可重建的应用缓存与日志",
+  emptyFoldersWarning: "请至少保留一个要检查的文件夹",
 
   dupDetail: (place, keepPlace, keepName) =>
     `${place} · 和${keepPlace === place ? "同一文件夹" : keepPlace}里的「${keepName}」一模一样，留那份`,

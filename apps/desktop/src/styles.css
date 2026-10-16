@@ -95,6 +95,30 @@ ul {
   letter-spacing: 0.01em;
 }
 
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--accent);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+
+.btn-text:hover {
+  background: var(--sunk);
+  color: var(--accent-press);
+}
+
 .topbar-note {
   display: inline-flex;
   align-items: center;
@@ -105,6 +129,153 @@ ul {
 
 .topbar-note .icon {
   color: var(--ok);
+}
+
+/* Ready Screen & Folder List */
+
+.ready-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 20px;
+}
+
+.ready-head {
+  padding: 4px 4px 0;
+}
+
+.ready-title {
+  font-size: 21px;
+  font-weight: 650;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.ready-sub {
+  margin-top: 6px;
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.folder-list {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.folder-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  transition: background 0.15s ease;
+}
+
+.folder-row:hover {
+  background: var(--hover);
+}
+
+.folder-row.disabled {
+  opacity: 0.6;
+}
+
+.folder-check {
+  margin-right: 12px;
+}
+
+.folder-tile {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  margin-right: 14px;
+}
+
+.tile-folder {
+  background: var(--tile-installer-bg);
+  color: var(--tile-installer-ink);
+}
+
+.folder-info {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.folder-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.folder-name {
+  font-size: 14.5px;
+  font-weight: 550;
+  color: var(--ink);
+}
+
+.folder-tag {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--sunk);
+  color: var(--muted);
+}
+
+.folder-tag.custom {
+  background: var(--tile-duplicate-bg);
+  color: var(--tile-duplicate-ink);
+}
+
+.folder-path {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folder-remove {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  margin-left: 10px;
+}
+
+.folder-remove:hover {
+  background: var(--sunk);
+  color: var(--accent);
+}
+
+.add-folder-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.add-folder-btn:hover {
+  background: var(--hover);
 }
 
 /* Home */
@@ -471,12 +642,32 @@ ul {
   color: var(--faint);
 }
 
-.more {
+.more-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   margin: 2px 0 4px 52px;
+}
+
+.more {
   padding: 6px 0;
   font-size: 13px;
   font-weight: 600;
   color: var(--accent);
+}
+
+.more:hover {
+  text-decoration: underline;
+}
+
+.collapse {
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.collapse:hover {
+  color: var(--ink);
 }
 
 .tree + .tree {

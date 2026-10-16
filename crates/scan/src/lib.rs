@@ -40,6 +40,22 @@ impl ScanRequest {
             home,
         }
     }
+
+    pub fn with_folders(home: PathBuf, scan_roots: Vec<PathBuf>, include_caches: bool) -> Self {
+        let cache_roots = if include_caches {
+            vec![home.join("Library/Caches"), home.join("Library/Logs")]
+        } else {
+            Vec::new()
+        };
+        Self {
+            installer_roots: scan_roots.clone(),
+            duplicate_roots: scan_roots,
+            cache_roots,
+            now_ms: now_ms(),
+            min_duplicate_file_bytes: MIN_DUPLICATE_FILE_BYTES,
+            home,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]

@@ -5,7 +5,8 @@ import { agoText, formatBytes, placeOf } from "../format";
 import AppIcon from "./AppIcon.vue";
 import CheckBox from "./CheckBox.vue";
 
-const VISIBLE = 5;
+const INITIAL_VISIBLE = 5;
+const STEP = 100;
 
 const props = defineProps({
   section: { type: Object, required: true },
@@ -15,11 +16,21 @@ const props = defineProps({
 const emit = defineEmits(["toggle-row", "toggle-section", "reveal"]);
 
 const open = ref(true);
-const showAll = ref(false);
+const visibleRowsCount = ref(INITIAL_VISIBLE);
+const visibleTreeCount = ref(INITIAL_VISIBLE);
 
 const meta = computed(() => copy.kinds[props.section.kind]);
-const rows = computed(() => (showAll.value ? props.section.rows : props.section.rows.slice(0, VISIBLE)));
-const hidden = computed(() => props.section.rows.length - rows.value.length);
+const rows = computed(() => props.section.rows.slice(0, visibleRowsCount.value));
+const hiddenRows = computed(() => Math.max(0, props.section.rows.length - visibleRowsCount.value));
+const nextRowsStep = computed(() => Math.min(STEP, hiddenRows.value));
+
+function showMoreRows() {
+  visibleRowsCount.value += STEP;
+}
+function collapseRows() {
+  visibleRowsCount.value = INITIAL_VISIBLE;
+}
+
 const pickedCount = computed(() => props.section.rows.filter((row) => props.selected.has(row.path)).length);
 const state = computed(() => {
   if (pickedCount.value === 0) return "off";
@@ -51,8 +62,16 @@ const trees = computed(() => {
   }
   return groups;
 });
-const visibleTrees = computed(() => (showAll.value ? trees.value : trees.value.slice(0, VISIBLE)));
-const hiddenTrees = computed(() => trees.value.length - visibleTrees.value.length);
+const visibleTrees = computed(() => trees.value.slice(0, visibleTreeCount.value));
+const hiddenTrees = computed(() => Math.max(0, trees.value.length - visibleTreeCount.value));
+const nextTreesStep = computed(() => Math.min(STEP, hiddenTrees.value));
+
+function showMoreTrees() {
+  visibleTreeCount.value += STEP;
+}
+function collapseTrees() {
+  visibleTreeCount.value = INITIAL_VISIBLE;
+}
 
 function keepTitle(tree) {
   return tree.keep_name || tree.keep_path?.split("/").pop() || "留下的文件";
@@ -147,9 +166,12 @@ function detail(row) {
           </li>
         </ul>
       </li>
-      <li v-if="hiddenTrees > 0 || (showAll && trees.length > VISIBLE)">
-        <button class="more" type="button" @click="showAll = !showAll">
-          {{ showAll ? copy.showLess : copy.showMoreGroups(hiddenTrees) }}
+      <li v-if="hiddenTrees > 0 || visibleTreeCount > INITIAL_VISIBLE" class="more-row">
+        <button v-if="hiddenTrees > 0" class="more" type="button" @click="showMoreTrees">
+          {{ copy.showMoreGroupsStep(nextTreesStep, hiddenTrees) }}
+        </button>
+        <button v-if="visibleTreeCount > INITIAL_VISIBLE" class="collapse" type="button" @click="collapseTrees">
+          {{ copy.showLess }}
         </button>
       </li>
     </ul>
@@ -174,9 +196,12 @@ function detail(row) {
           <AppIcon name="search" :size="16" />
         </button>
       </li>
-      <li v-if="hidden > 0 || showAll">
-        <button class="more" type="button" @click="showAll = !showAll">
-          {{ showAll ? copy.showLess : copy.showMore(hidden) }}
+      <li v-if="hiddenRows > 0 || visibleRowsCount > INITIAL_VISIBLE" class="more-row">
+        <button v-if="hiddenRows > 0" class="more" type="button" @click="showMoreRows">
+          {{ copy.showMoreStep(nextRowsStep, hiddenRows) }}
+        </button>
+        <button v-if="visibleRowsCount > INITIAL_VISIBLE" class="collapse" type="button" @click="collapseRows">
+          {{ copy.showLess }}
         </button>
       </li>
     </ul>

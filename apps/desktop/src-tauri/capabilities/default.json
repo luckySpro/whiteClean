@@ -9,6 +9,8 @@
     "allow-clean",
     "allow-undo",
     "allow-open-permission-settings",
-    "allow-reveal-in-finder"
+    "allow-reveal-in-finder",
+    "allow-get-default-folders",
+    "allow-pick-folder"
   ]
 }

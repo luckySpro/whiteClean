@@ -22,3 +22,13 @@ commands.allow = ["open_permission_settings"]
 identifier = "allow-reveal-in-finder"
 description = "Show a file from the last scan in Finder."
 commands.allow = ["reveal_in_finder"]
+
+[[permission]]
+identifier = "allow-get-default-folders"
+description = "Get default folders configuration."
+commands.allow = ["get_default_folders"]
+
+[[permission]]
+identifier = "allow-pick-folder"
+description = "Pick a custom folder to scan."
+commands.allow = ["pick_folder"]

@@ -37,14 +37,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/desktop
-          tagName: v__VERSION__-test.4
+          tagName: v__VERSION__-test.5
           releaseName: WhiteClean v__VERSION__ 测试版
           releaseBody: |
             给本机试用的 Apple 芯片（M 系列）包，没有 Apple 公证。
 
-            下载 DMG 后，把 WhiteClean 拖进「应用程序」。如果系统提示无法打开，到「系统设置 → 隐私与安全性」里选择仍要打开。
+            本次更新：
+            1. 打开不自动搜索，默认展示文件夹列表清单，由用户点击「开始检查」主动触发检索；
+            2. 支持点击「+ 添加文件夹」自由增加检索目录，自定义文件夹随时可移除；
+            3. 大量文件时改为每点一次展开 100 项（或 100 组），支持收起，避免一次渲染几千项卡顿。
 
-            它会检查这台 Mac 的下载、桌面、文稿和缓存。只有你确认之后，文件才会进废纸篓，并且可以撤销。
+            下载 DMG 后，把 WhiteClean 拖进「应用程序」。如果系统提示无法打开，到「系统设置 → 隐私与安全性」里选择仍要打开。
           releaseDraft: false
           prerelease: true
           args: --target aarch64-apple-darwin
